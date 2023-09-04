@@ -160,7 +160,8 @@ class ThrowerAnt(Ant):
     name = 'Thrower'
     implemented = True
     damage = 1
-    # ADD/OVERRIDE CLASS ATTRIBUTES HERE
+    # ADD/OVERRID
+    # E CLASS ATTRIBUTES HERE
     food_cost = 3
     def nearest_bee(self, beehive):
         """Return the nearest Bee in a Place that is not the HIVE (beehive), connected to
@@ -175,8 +176,8 @@ class ThrowerAnt(Ant):
                 break;
             place = place.entrance
         
-        if place == beehive: return None
-        rANTdom_else_none(place.bees)
+        if place is beehive: return None
+        return rANTdom_else_none(place.bees)
         # END Problem 3 and 4
 
     def throw_at(self, target):

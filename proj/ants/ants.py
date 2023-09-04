@@ -163,6 +163,8 @@ class ThrowerAnt(Ant):
     # ADD/OVERRID
     # E CLASS ATTRIBUTES HERE
     food_cost = 3
+    min_range = 0
+    max_range = float('inf')
     def nearest_bee(self, beehive):
         """Return the nearest Bee in a Place that is not the HIVE (beehive), connected to
         the ThrowerAnt's Place by following entrances.
@@ -170,13 +172,18 @@ class ThrowerAnt(Ant):
         This method returns None if there is no such Bee (or none in range).
         """
         # BEGIN Problem 3 and 4
-        place : Place = self.place
-        while place is not beehive:
-            if len(place.bees) > 0:
-                break;
+        place = self.place
+        curr_range = 0
+        while curr_range < self.min_range and place is not beehive:
             place = place.entrance
-        
-        if place is beehive: return None
+            curr_range += 1
+        while curr_range <= self.max_range and place is not beehive:
+            if len(place.bees) > 0:
+                break
+            place = place.entrance
+            curr_range += 1
+        if place is beehive or curr_range > self.max_range:
+            return None
         return rANTdom_else_none(place.bees)
         # END Problem 3 and 4
 
@@ -205,8 +212,9 @@ class ShortThrower(ThrowerAnt):
     name = 'Short'
     food_cost = 2
     # OVERRIDE CLASS ATTRIBUTES HERE
+    max_range = 3
     # BEGIN Problem 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 4
 
 class LongThrower(ThrowerAnt):
@@ -215,8 +223,9 @@ class LongThrower(ThrowerAnt):
     name = 'Long'
     food_cost = 2
     # OVERRIDE CLASS ATTRIBUTES HERE
+    min_range = 5
     # BEGIN Problem 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 4
 
 class FireAnt(Ant):
@@ -227,7 +236,7 @@ class FireAnt(Ant):
     food_cost = 5
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 5
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 5
 
     def __init__(self, armor=3):
@@ -242,7 +251,20 @@ class FireAnt(Ant):
         if the fire ant dies.
         """
         # BEGIN Problem 5
-        "*** YOUR CODE HERE ***"
+        def reflected_damage(amount):
+            remaining_bees = []
+            for bee in self.place.bees:
+                if bee.armor > amount:
+                    remaining_bees.append(bee)
+            for bee in self.place.bees.copy():
+                Insect.reduce_armor(bee, amount)
+            self.place.bees = remaining_bees
+        reflected_damage(amount)
+        print("DEBUG: remaining bees armor", [bee.armor for bee in self.place.bees])
+        if self.armor <= amount:
+            reflected_damage(self.damage)
+            print("DEBUG: remaining bees armor", [bee.armor for bee in self.place.bees])
+        Ant.reduce_armor(self, amount)
         # END Problem 5
 
 class HungryAnt(Ant):
@@ -253,7 +275,7 @@ class HungryAnt(Ant):
     food_cost = 4
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 6
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 6
 
     def __init__(self, armor=1):

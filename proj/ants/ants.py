@@ -415,6 +415,9 @@ class AntRemover(Ant):
     def __init__(self):
         Ant.__init__(self, 0)
 
+LEFT = True
+RIGHT = False
+
 class Bee(Insect):
     """A Bee moves from place to place, following exits and stinging ants."""
 
@@ -423,6 +426,11 @@ class Bee(Insect):
     # OVERRIDE CLASS ATTRIBUTES HERE
     is_watersafe = True
 
+    def __init__(self, armor, place=None):
+        super().__init__(armor, place)
+        self.status = []
+        self.direction = LEFT
+        self.scared = False
 
     def sting(self, ant):
         """Attack an ANT, reducing its armor by 1."""
@@ -449,7 +457,10 @@ class Bee(Insect):
         destination = self.place.exit
         # Extra credit: Special handling for bee direction
         # BEGIN EC
-        "*** YOUR CODE HERE ***"
+        if self.direction == RIGHT:
+            destination = self.place.entrance
+            if isinstance(destination, Hive):
+                destination = self.place
         # END EC
         if self.blocked():
             self.sting(self.place.ant)
@@ -568,7 +579,10 @@ def make_slow(action, bee):
     action -- An action method of some Bee
     """
     # BEGIN Problem Optional 4
-    "*** YOUR CODE HERE ***"
+    def slow_action(gamestate):
+        if gamestate.time % 2 == 0:
+            action(gamestate)
+    return slow_action
     # END Problem Optional 4
 
 def make_scare(action, bee):
@@ -577,13 +591,28 @@ def make_scare(action, bee):
     action -- An action method of some Bee
     """
     # BEGIN Problem Optional 4
-    "*** YOUR CODE HERE ***"
+    def scare_action(gamestate):
+        bee.direction = RIGHT
+        action(gamestate)
+        bee.direction = LEFT
+    return scare_action
     # END Problem Optional 4
 
 def apply_status(status, bee, length):
     """Apply a status to a BEE that lasts for LENGTH turns."""
     # BEGIN Problem Optional 4
-    "*** YOUR CODE HERE ***"
+    origin_action = bee.action
+    new_action = status(bee.action, bee)
+    
+    def alt_status(gamestate):
+        nonlocal length
+        if length > 0:
+            new_action(gamestate)
+            length -= 1
+        else:
+            origin_action(gamestate)
+            
+    bee.action = alt_status
     # END Problem Optional 4
 
 
@@ -593,7 +622,7 @@ class SlowThrower(ThrowerAnt):
     name = 'Slow'
     food_cost = 4
     # BEGIN Problem Optional 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem Optional 4
 
     def throw_at(self, target):
@@ -607,12 +636,14 @@ class ScaryThrower(ThrowerAnt):
     name = 'Scary'
     food_cost = 6
     # BEGIN Problem Optional 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem Optional 4
 
     def throw_at(self, target):
         # BEGIN Problem Optional 4
-        "*** YOUR CODE HERE ***"
+        if target and not target.scared:
+            apply_status(make_scare, target, 2)
+            target.scared = True
         # END Problem Optional 4
 
 class LaserAnt(ThrowerAnt):
